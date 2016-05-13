@@ -21,8 +21,8 @@ namespace PicRate
         private const string folderDescriptionStartTag = "<H3";
         private const string folderDescriptionEndTag = "</H3>";
         private static readonly Regex folderDescriptionRegex = new Regex(@"^<H3 ADD_DATE=\""(?<addDate>\d+)\"" LAST_MODIFIED=\""(?<lastModified>\d+)\""( PERSONAL_TOOLBAR_FOLDER=\""true\"")?>(?<title>.*)<\/H3>$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
-        //private static readonly Regex bookmarkRegex = new Regex(@"^<A HREF=\""(?<link>.*)\"" ADD_DATE=\""(?<addDate>\d+)\""( ICON=\""data:image/png;base64,(?<base64string>.+)\"")?>(?<title>.*)</A>$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
-        private static readonly Regex bookmarkRegex = new Regex(@"^<A HREF=\""(?<link>.*)\"" ADD_DATE=\""(?<addDate>\d+)\""( ICON=\"".+\"")?>(?<title>.*)</A>$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+        private static readonly Regex bookmarkRegex = new Regex(@"^<A HREF=\""(?<link>.*)\"" ADD_DATE=\""(?<addDate>\d+)\""( ICON=\""data:image/png;base64,(?<base64string>.+)\"")?>(?<title>.*)</A>$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+        //private static readonly Regex bookmarkRegex = new Regex(@".{9}(?<link>.*)\"".{10}\""(?<addDate>\d+)\"".{29}(?<base64string>.+)\"".(?<title>.*)<.{3}", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
         public BookmarkBase this[int number] => collection[number];
 
