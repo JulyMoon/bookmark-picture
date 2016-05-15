@@ -22,7 +22,6 @@ namespace PicRate
         private const string folderDescriptionEndTag = "</H3>";
         private static readonly Regex folderDescriptionRegex = new Regex(@"^<H3 ADD_DATE=\""(?<addDate>\d+)\"" LAST_MODIFIED=\""(?<lastModified>\d+)\""( PERSONAL_TOOLBAR_FOLDER=\""true\"")?>(?<title>.*)<\/H3>$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
         private static readonly Regex bookmarkRegex = new Regex(@"^<A HREF=\""(?<link>.*)\"" ADD_DATE=\""(?<addDate>\d+)\""( ICON=\""data:image/png;base64,(?<base64string>.+)\"")?>(?<title>.*)</A>$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
-        //private static readonly Regex bookmarkRegex = new Regex(@".{9}(?<link>.*)\"".{10}\""(?<addDate>\d+)\"".{29}(?<base64string>.+)\"".(?<title>.*)<.{3}", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
         public BookmarkBase this[int number] => collection[number];
 
@@ -79,7 +78,7 @@ namespace PicRate
                     bookmarkEndIndex += bookmarkEndTag.Length;
 
                     string bookmarkRaw = contents.Substring(bookmarkStartIndex, bookmarkEndIndex - bookmarkStartIndex);
-                    list.Add(ParseBookmark(bookmarkRaw));
+                    list.Add(ParseBookmark(bookmarkRaw, true));
 
                     currentIndex = bookmarkEndIndex;
                 }
@@ -136,25 +135,61 @@ namespace PicRate
             if (!match.Success)
                 throw new ArgumentException("Invalid folder description");
 
-            addDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(Int64.Parse(match.Groups["addDate"].Value)); // not sure if UTC
-            lastModified = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(Int64.Parse(match.Groups["lastModified"].Value)); // ^ same
+            addDate = UnixToDateTime(match.Groups["addDate"].Value);
+            lastModified = UnixToDateTime(match.Groups["lastModified"].Value);
             title = match.Groups["title"].Value;
         }
 
-        private Bookmark ParseBookmark(string contents)
+        private Bookmark ParseBookmark(string contents, bool useRegex) // regex is slighty slower
         {
-            var match = bookmarkRegex.Match(contents);
+            if (useRegex)
+            {
+                var match = bookmarkRegex.Match(contents);
 
-            if (!match.Success)
-                throw new ArgumentException("Invalid bookmark format");
+                if (!match.Success)
+                    throw new ArgumentException("Invalid bookmark format");
 
-            var addDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(Int64.Parse(match.Groups["addDate"].Value)); // not sure if UTC
-            var title = match.Groups["title"].Value;
-            var link = match.Groups["link"].Value;
-            // TODO: match.Groups["base64string"].Value
+                var addDate = UnixToDateTime(match.Groups["addDate"].Value);
+                var title = match.Groups["title"].Value;
+                var link = match.Groups["link"].Value;
+                // TODO: match.Groups["base64string"].Value
 
-            return new Bookmark(addDate, title, link);
+                return new Bookmark(addDate, title, link);
+            }
+            else
+            {
+                const int firstMark = 9;
+                const int thirdMarkDifference = 12;
+                const string iconPrefix = "\" ICON=\"data:image/png;base64,";
+
+                int secondMark = contents.IndexOf('"', firstMark);
+                var link = contents.Substring(firstMark, secondMark - firstMark);
+
+                int thirdMark = secondMark + thirdMarkDifference;
+                int fourthMark = contents.IndexOf('"', thirdMark);
+                var rawAddDate = contents.Substring(thirdMark, fourthMark - thirdMark);
+
+                int titleStart;
+                if (contents.Substring(fourthMark, iconPrefix.Length) == iconPrefix)
+                {
+                    int iconStart = fourthMark + iconPrefix.Length;
+                    int sixthMark = contents.IndexOf('"', iconStart);
+                    var rawIcon = contents.Substring(iconStart, sixthMark - iconStart);
+                    titleStart = sixthMark + 2;
+                }
+                else
+                {
+                    titleStart = fourthMark + 2;
+                }
+
+                int titleEnd = contents.IndexOf('<', titleStart);
+                var title = contents.Substring(titleStart, titleEnd - titleStart);
+
+                return new Bookmark(UnixToDateTime(rawAddDate), title, link);
+            }
         }
+
+        private DateTime UnixToDateTime(string unixTimestamp) => new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(Int64.Parse(unixTimestamp)); // not sure if UTC though
 
         private Image GetImageFromBase64String(string base64string)
         {
@@ -213,9 +248,6 @@ namespace PicRate
             return count;
         }
 
-        public static int Count(this string self, string substring)
-        {
-            return self.Count(substring, 0);
-        }
+        public static int Count(this string self, string substring) => self.Count(substring, 0);
     }
 }
