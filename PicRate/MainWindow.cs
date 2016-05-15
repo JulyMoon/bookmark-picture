@@ -22,7 +22,7 @@ namespace PicRate
         {
             var sw = new Stopwatch();
             sw.Start();
-            var bookmarks = new BookmarkCollection(@"F:\foxneSs\backups\bookmarks\1000.html");
+            var bookmarks = BookmarkParser.Parse(@"F:\foxneSs\backups\bookmarks\bookmarks_5_9_16.html");
             sw.Stop();
             Debug.WriteLine(sw.Elapsed.TotalSeconds);
         }
