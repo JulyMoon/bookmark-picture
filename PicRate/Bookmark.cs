@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 
 namespace PicRate
@@ -158,6 +159,7 @@ namespace PicRate
         }
     }
 
+    [Serializable]
     class BookmarkFolder : BookmarkBase, IReadOnlyList<BookmarkBase>
     {
         public readonly DateTime LastModified;
@@ -176,8 +178,26 @@ namespace PicRate
         public IEnumerator GetEnumerator() => collection.GetEnumerator();
 
         IEnumerator<BookmarkBase> IEnumerable<BookmarkBase>.GetEnumerator() => collection.GetEnumerator();
+
+        public byte[] Serialize()
+        {
+            var bf = new BinaryFormatter();
+            var ms = new MemoryStream();
+            bf.Serialize(ms, this);
+            return ms.ToArray();
+        }
+
+        public static BookmarkFolder Deserialize(byte[] toDeserialize)
+        {
+            var bf = new BinaryFormatter();
+            var ms = new MemoryStream();
+            ms.Write(toDeserialize, 0, toDeserialize.Length);
+            ms.Seek(0, SeekOrigin.Begin);
+            return (BookmarkFolder)bf.Deserialize(ms);
+        }
     }
 
+    [Serializable]
     class Bookmark : BookmarkBase
     {
         public readonly string Link;
@@ -189,6 +209,7 @@ namespace PicRate
         }
     }
 
+    [Serializable]
     abstract class BookmarkBase
     {
         public readonly DateTime AddDate;
@@ -199,20 +220,5 @@ namespace PicRate
             AddDate = addDate;
             Title = title;
         }
-    }
-
-    public static class ExtensionMethods
-    {
-        public static int Count(this string self, string substring, int startIndex)
-        {
-            int count = 0;
-            for (int i = startIndex; i + substring.Length <= self.Length; i++)
-                if (self.Substring(i, substring.Length) == substring)
-                    count++;
-
-            return count;
-        }
-
-        public static int Count(this string self, string substring) => self.Count(substring, 0);
     }
 }

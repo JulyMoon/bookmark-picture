@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,9 +23,13 @@ namespace PicRate
         {
             var sw = new Stopwatch();
             sw.Start();
-            var bookmarks = BookmarkParser.Parse(@"F:\foxneSs\backups\bookmarks\bookmarks_5_9_16.html");
+            var bookmarks = BookmarkParser.Parse(@"F:\foxneSs\backups\bookmarks\1000.html");
             sw.Stop();
             Debug.WriteLine(sw.Elapsed.TotalSeconds);
+
+            //File.WriteAllBytes(@"C:\Users\foxneSs\Desktop\asd.txt", bookmarks.Serialize());
+            //var bookmarks2 = BookmarkFolder.Deserialize(File.ReadAllBytes(@"C:\Users\foxneSs\Desktop\asd.txt"));
+            //Debug.WriteLine(((Bookmark)((BookmarkFolder)bookmarks2[0])[500]).Link);
         }
     }
 }
