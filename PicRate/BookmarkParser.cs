@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 
 namespace PicRate
@@ -20,10 +16,10 @@ namespace PicRate
         private static readonly Regex folderDescriptionRegex = new Regex(@"^<H3 ADD_DATE=\""(?<addDate>\d+)\"" LAST_MODIFIED=\""(?<lastModified>\d+)\""( PERSONAL_TOOLBAR_FOLDER=\""true\"")?>(?<title>.*)<\/H3>$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
         private static readonly Regex bookmarkRegex = new Regex(@"^<A HREF=\""(?<link>.*)\"" ADD_DATE=\""(?<addDate>\d+)\""( ICON=\""data:image/png;base64,(?<base64string>.+)\"")?>(?<title>.*)</A>$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
-        public static BookmarkFolder Parse(string filePath)
+        public static BookmarkFolder Parse(string contents)
         {
             int currentIndex = 0, currentDepth = 0;
-            return new BookmarkFolder(DateTime.MaxValue, "Bookmarks", DateTime.MaxValue, ParseFolderContents(File.ReadAllText(filePath).Replace("<p>", ""), ref currentIndex, ref currentDepth));
+            return new BookmarkFolder(DateTime.MaxValue, "Bookmarks", DateTime.MaxValue, ParseFolderContents(contents.Replace("<p>", ""), ref currentIndex, ref currentDepth));
         }
 
         private static List<BookmarkBase> ParseFolderContents(string contents, ref int currentIndex, ref int currentDepth)
@@ -151,74 +147,11 @@ namespace PicRate
 
         private static DateTime UnixToDateTime(string unixTimestamp) => new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(Int64.Parse(unixTimestamp)); // not sure if UTC though
 
-        private static Image GetImageFromBase64String(string base64string)
+        /*private static Image GetImageFromBase64String(string base64string)
         {
             var data = Convert.FromBase64String(base64string);
             using (var stream = new MemoryStream(data, 0, data.Length))
                 return Image.FromStream(stream);
-        }
-    }
-
-    [Serializable]
-    class BookmarkFolder : BookmarkBase, IReadOnlyList<BookmarkBase>
-    {
-        public readonly DateTime LastModified;
-        private List<BookmarkBase> collection;
-
-        public int Count => collection.Count;
-
-        public BookmarkBase this[int number] => collection[number];
-
-        public BookmarkFolder(DateTime addDate, string title, DateTime lastModified, List<BookmarkBase> bookmarkBases) : base(addDate, title)
-        {
-            LastModified = lastModified;
-            collection = bookmarkBases;
-        }
-
-        public IEnumerator GetEnumerator() => collection.GetEnumerator();
-
-        IEnumerator<BookmarkBase> IEnumerable<BookmarkBase>.GetEnumerator() => collection.GetEnumerator();
-
-        public byte[] Serialize()
-        {
-            var bf = new BinaryFormatter();
-            var ms = new MemoryStream();
-            bf.Serialize(ms, this);
-            return ms.ToArray();
-        }
-
-        public static BookmarkFolder Deserialize(byte[] toDeserialize)
-        {
-            var bf = new BinaryFormatter();
-            var ms = new MemoryStream();
-            ms.Write(toDeserialize, 0, toDeserialize.Length);
-            ms.Seek(0, SeekOrigin.Begin);
-            return (BookmarkFolder)bf.Deserialize(ms);
-        }
-    }
-
-    [Serializable]
-    class Bookmark : BookmarkBase
-    {
-        public readonly string Link;
-        // public Bitmap Icon; TODO
-
-        public Bookmark(DateTime addDate, string title, string link) : base(addDate, title)
-        {
-            Link = link;
-        }
-    }
-
-    [Serializable]
-    abstract class BookmarkBase
-    {
-        public readonly DateTime AddDate;
-        public readonly string Title;
-
-        public BookmarkBase(DateTime addDate, string title)
-        {
-            AddDate = addDate;
-            Title = title;
-        }
+        }*/
     }
 }

@@ -46,8 +46,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Bookmark.cs" />
-    <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="BookmarkFolder.cs" />
+    <Compile Include="BookmarkParser.cs" />
+    <Compile Include="BookmarkFolderCache.cs" />
     <Compile Include="MainWindow.cs">
       <SubType>Form</SubType>
     </Compile>
