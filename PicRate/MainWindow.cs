@@ -18,9 +18,27 @@ namespace PicRate
         {
             var sw = new Stopwatch();
             sw.Start();
-            var cache = new BookmarkFolderCache(cacheFile);
-            var bookmarks = cache.Add(File.ReadAllBytes(@"F:\foxneSs\backups\bookmarks\10000.html"));
-            cache.Save();
+            var bookmarks = JSONBookmarkParser.Parse(File.ReadAllText(@"C:\Users\foxneSs\Desktop\large"));
+            sw.Stop();
+            Debug.WriteLine(sw.Elapsed.TotalSeconds);
+
+            sw.Reset();
+            sw.Start();
+            bookmarks = bookmarks.Flattened();
+            int count = 0;
+            for (int i = 0; i < bookmarks.Count; i++)
+                for (int j = 0; j < bookmarks.Count; j++)
+                {
+                    if (i == j)
+                        continue;
+
+                    var a = (Bookmark)bookmarks[i];
+                    var b = (Bookmark)bookmarks[j];
+
+                    if (a.Link == b.Link && a.Title == b.Title)
+                        count++;
+                }
+            Debug.WriteLine($"{count} matches found in total");
             sw.Stop();
             Debug.WriteLine(sw.Elapsed.TotalSeconds);
         }

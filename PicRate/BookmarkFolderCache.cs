@@ -34,7 +34,7 @@ namespace PicRate
             var md5hash = Convert.ToBase64String(md5.ComputeHash(serialized));
 
             if (!cache.ContainsKey(md5hash))
-                cache.Add(md5hash, BookmarkParser.Parse(Encoding.Default.GetString(serialized)));
+                cache.Add(md5hash, HTMLBookmarkParser.Parse(Encoding.Default.GetString(serialized)));
 
             return cache[md5hash];
         }

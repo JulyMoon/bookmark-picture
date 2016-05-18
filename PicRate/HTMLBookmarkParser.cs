@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace PicRate
 {
-    static class BookmarkParser
+    static class HTMLBookmarkParser
     {
         private const string folderContentStartTag = "<DL>";
         private const string folderContentEndTag = "</DL>";
@@ -14,12 +14,12 @@ namespace PicRate
         private const string folderDescriptionStartTag = "<H3";
         private const string folderDescriptionEndTag = "</H3>";
         private static readonly Regex folderDescriptionRegex = new Regex(@"^<H3 ADD_DATE=\""(?<addDate>\d+)\"" LAST_MODIFIED=\""(?<lastModified>\d+)\""( PERSONAL_TOOLBAR_FOLDER=\""true\"")?>(?<title>.*)<\/H3>$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
-        private static readonly Regex bookmarkRegex = new Regex(@"^<A HREF=\""(?<link>.*)\"" ADD_DATE=\""(?<addDate>\d+)\""( ICON=\""data:image/png;base64,(?<base64string>.+)\"")?>(?<title>.*)</A>$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
+        private static readonly Regex bookmarkRegex = new Regex(@"^<A HREF=\""(?<link>.*)\"" ADD_DATE=\""(?<addDate>\d+)\""( ICON=\""data:image/png;base64,(?<base64image>.+)\"")?>(?<title>.*)</A>$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
         public static BookmarkFolder Parse(string contents)
         {
             int currentIndex = 0, currentDepth = 0;
-            return new BookmarkFolder(DateTime.MaxValue, "Bookmarks", DateTime.MaxValue, ParseFolderContents(contents.Replace("<p>", ""), ref currentIndex, ref currentDepth));
+            return new BookmarkFolder(DateTime.Now, "Bookmarks", DateTime.Now, ParseFolderContents(contents.Replace("<p>", ""), ref currentIndex, ref currentDepth));
         }
 
         private static List<BookmarkBase> ParseFolderContents(string contents, ref int currentIndex, ref int currentDepth)
@@ -91,8 +91,8 @@ namespace PicRate
             if (!match.Success)
                 throw new ArgumentException("Invalid folder description");
 
-            addDate = UnixToDateTime(match.Groups["addDate"].Value);
-            lastModified = UnixToDateTime(match.Groups["lastModified"].Value);
+            addDate = ParseDateTime(match.Groups["addDate"].Value);
+            lastModified = ParseDateTime(match.Groups["lastModified"].Value);
             title = match.Groups["title"].Value;
         }
 
@@ -105,10 +105,9 @@ namespace PicRate
                 if (!match.Success)
                     throw new ArgumentException("Invalid bookmark format");
 
-                var addDate = UnixToDateTime(match.Groups["addDate"].Value);
+                var addDate = ParseDateTime(match.Groups["addDate"].Value);
                 var title = match.Groups["title"].Value;
                 var link = match.Groups["link"].Value;
-                // TODO: match.Groups["base64string"].Value
 
                 return new Bookmark(addDate, title, link);
             }
@@ -141,17 +140,10 @@ namespace PicRate
                 int titleEnd = contents.IndexOf('<', titleStart);
                 var title = contents.Substring(titleStart, titleEnd - titleStart);
 
-                return new Bookmark(UnixToDateTime(rawAddDate), title, link);
+                return new Bookmark(ParseDateTime(rawAddDate), title, link);
             }
         }
 
-        private static DateTime UnixToDateTime(string unixTimestamp) => new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(Int64.Parse(unixTimestamp)); // not sure if UTC though
-
-        /*private static Image GetImageFromBase64String(string base64string)
-        {
-            var data = Convert.FromBase64String(base64string);
-            using (var stream = new MemoryStream(data, 0, data.Length))
-                return Image.FromStream(stream);
-        }*/
+        private static DateTime ParseDateTime(string unixTimestamp) => new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(Int64.Parse(unixTimestamp)); // not sure if UTC though
     }
 }

@@ -8,7 +8,7 @@ namespace PicRate
     class BookmarkFolder : BookmarkBase, IReadOnlyList<BookmarkBase>
     {
         public readonly DateTime LastModified;
-        private List<BookmarkBase> collection;
+        private readonly List<BookmarkBase> collection;
 
         public int Count => collection.Count;
 
@@ -18,6 +18,23 @@ namespace PicRate
         {
             LastModified = lastModified;
             collection = bookmarkBases;
+        }
+
+        public BookmarkFolder Flattened()
+        {
+            var newCollection = new List<BookmarkBase>();
+            foreach (var bookmarkBase in collection)
+            {
+                if (bookmarkBase is Bookmark)
+                    newCollection.Add(bookmarkBase);
+                else // if (bookmarkBase is BookmarkFolder)
+                {
+                    foreach (var bookmark in ((BookmarkFolder)bookmarkBase).Flattened().collection)
+                        newCollection.Add(bookmark);
+                }
+            }
+
+            return new BookmarkFolder(AddDate, Title, LastModified, newCollection);
         }
 
         public IEnumerator GetEnumerator() => collection.GetEnumerator();
@@ -48,5 +65,7 @@ namespace PicRate
             AddDate = addDate;
             Title = title;
         }
+
+        public override string ToString() => Title;
     }
 }
