@@ -53,6 +53,7 @@
     <Compile Include="BookmarkFolder.cs" />
     <Compile Include="HTMLBookmarkParser.cs" />
     <Compile Include="BookmarkFolderCache.cs" />
+    <Compile Include="Imgur.cs" />
     <Compile Include="JSONBookmarkParser.cs" />
     <Compile Include="MainWindow.cs">
       <SubType>Form</SubType>
