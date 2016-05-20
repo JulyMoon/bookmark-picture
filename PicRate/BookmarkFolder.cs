@@ -7,6 +7,8 @@ namespace PicRate
     [Serializable]
     class BookmarkFolder : BookmarkBase, IReadOnlyList<BookmarkBase>
     {
+        public delegate bool Select<T>(T bookmarkBase) where T : BookmarkBase;
+
         public readonly DateTime LastModified;
         private readonly List<BookmarkBase> collection;
 
@@ -37,6 +39,28 @@ namespace PicRate
             return new BookmarkFolder(AddDate, Title, LastModified, newCollection);
         }
 
+        public List<T> Find<T>(Select<T> select) where T : BookmarkBase
+        {
+            var output = new List<T>();
+            foreach (var bookmarkBase in collection)
+            {
+                if (bookmarkBase is T && select((T)bookmarkBase))
+                    output.Add((T)bookmarkBase);
+
+                if (bookmarkBase.GetType() == typeof(BookmarkFolder))
+                    output.AddRange(((BookmarkFolder)bookmarkBase).Find(select));
+            }
+            return output;
+        }
+
+        public static explicit operator List<Bookmark>(BookmarkFolder a)
+        {
+            var list = new List<Bookmark>();
+            foreach (var bookmark in a)
+                list.Add((Bookmark)bookmark);
+            return list;
+        }
+
         public IEnumerator GetEnumerator() => collection.GetEnumerator();
 
         IEnumerator<BookmarkBase> IEnumerable<BookmarkBase>.GetEnumerator() => collection.GetEnumerator();
@@ -46,7 +70,6 @@ namespace PicRate
     class Bookmark : BookmarkBase
     {
         public readonly string Link;
-        // public Bitmap Icon; TODO
 
         public Bookmark(DateTime addDate, string title, string link) : base(addDate, title)
         {
