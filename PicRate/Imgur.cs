@@ -24,11 +24,10 @@ namespace PicRate
 
         public Imgur()
         {
-            //client.BaseAddress = new Uri(apiEndpoint);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Client-ID", clientId);
         }
 
-        public List<KeyValuePair<string, Image>> GetImages(List<string> urls)
+        /*public List<KeyValuePair<string, Image>> GetImages(List<string> urls)
         {
             var list = new List<KeyValuePair<string, Image>>();
             foreach (var url in urls)
@@ -38,9 +37,15 @@ namespace PicRate
                     list.Add(new KeyValuePair<string, Image>(url, GetImage(imageUrl)));
             }
             return list;
-        }
+        }*/
 
-        private Image GetImage(string url) => Image.FromStream(client.GetStreamAsync(url).Result);
+        public Image GetImage(string url)
+        {
+            var imageUrl = GetImageUrl(url);
+            if (imageUrl == null)
+                return null;
+            return Image.FromStream(client.GetStreamAsync(imageUrl).Result);
+        } 
 
         private string GetImageUrl(string url)
         {

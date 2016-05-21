@@ -75,6 +75,8 @@ namespace PicRate
         {
             Link = link;
         }
+
+        public override int GetHashCode() => base.GetHashCode() ^ Link.GetHashCode();
     }
 
     [Serializable]
@@ -90,5 +92,7 @@ namespace PicRate
         }
 
         public override string ToString() => Title;
+
+        public override int GetHashCode() => AddDate.GetHashCode() ^ Title.GetHashCode();
     }
 }
