@@ -38,9 +38,20 @@ namespace PicRate
                 return null;
 
             if (!ImageCache.ContainsKey(imageUrl))
-                ImageCache.Add(imageUrl, Image.FromStream(client.GetStreamAsync(imageUrl).Result));
+                ImageCache.Add(imageUrl, StreamToImage(client.GetStreamAsync(imageUrl).Result));
 
             return ImageCache[imageUrl];
+        }
+
+        private Image StreamToImage(Stream stream)
+        {
+            // this prevents gifs from freezing after deserializing
+            // http://stackoverflow.com/a/8900891/1412924
+            var ms = new MemoryStream();
+            stream.CopyTo(ms);
+            Debug.WriteLine(ms.Position);
+            //ms.Position = 0;
+            return Image.FromStream(ms);
         }
 
         private string GetImageUrl(string url)
