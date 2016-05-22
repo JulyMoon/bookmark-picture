@@ -3,9 +3,6 @@ using System;
 using System.Security.Cryptography;
 using System.IO;
 using System.Text;
-using System.IO.Compression;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Diagnostics;
 
 namespace PicRate
 {

@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 
@@ -20,6 +20,7 @@ namespace PicRate
         private const string clientId = "75a7b93a575fde4";
 
         public ImageCache ImageCache = new ImageCache(@"C:\Users\foxneSs\Desktop\Images.cache");
+        public ImageUrlCache ImageUrlCache = new ImageUrlCache(@"C:\Users\foxneSs\Desktop\Url.cache");
         private HttpClient client = new HttpClient();
         private Regex directImageRegex = new Regex(@"^https?://i\.imgur\.com/\w+\.\w+(\?\d+)?$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
         private Regex embeddedAlbumImageRegex = new Regex(@"^https?://imgur\.com/a/(?<album>\w+)/embed#(?<id>\d+)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
@@ -31,15 +32,10 @@ namespace PicRate
 
         public Image GetImage(string url)
         {
-            var sw = new Stopwatch();
-            sw.Start();
-            
             var imageUrl = GetImageUrl(url);
+
             if (imageUrl == null)
                 return null;
-
-            sw.Stop();
-            Debug.WriteLine(sw.Elapsed);
 
             if (!ImageCache.ContainsKey(imageUrl))
                 ImageCache.Add(imageUrl, Image.FromStream(client.GetStreamAsync(imageUrl).Result));
@@ -49,14 +45,20 @@ namespace PicRate
 
         private string GetImageUrl(string url)
         {
+            if (ImageUrlCache.ContainsKey(url))
+                return ImageUrlCache[url];
+
+            string result;
             if (directImageRegex.IsMatch(url))
-                return url;
+                result = url;
+            else
+            {
+                var match = embeddedAlbumImageRegex.Match(url);
+                result = match.Success ? GetImageUrl(match.Groups["album"].Value, Int32.Parse(match.Groups["id"].Value)) : null;
+            }
 
-            var match = embeddedAlbumImageRegex.Match(url);
-            if (!match.Success)
-                return null;
-
-            return GetImageUrl(match.Groups["album"].Value, Int32.Parse(match.Groups["id"].Value));
+            ImageUrlCache.Add(url, result);
+            return result;
         }
 
         private string GetImageUrl(string album, int id)

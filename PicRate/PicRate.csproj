@@ -51,10 +51,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BookmarkFolder.cs" />
+    <Compile Include="CacheBase.cs" />
     <Compile Include="CacheHelper.cs" />
     <Compile Include="HTMLBookmarkParser.cs" />
     <Compile Include="BookmarkFolderCache.cs" />
     <Compile Include="ImageCache.cs" />
+    <Compile Include="ImageUrlCache.cs" />
     <Compile Include="Imgur.cs" />
     <Compile Include="JSONBookmarkParser.cs" />
     <Compile Include="MainWindow.cs">

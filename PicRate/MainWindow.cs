@@ -30,13 +30,15 @@ namespace PicRate
             var allBookmarks = JSONBookmarkParser.Parse(File.ReadAllText(@"C:\Users\foxneSs\Desktop\large"));
             var nsfwFolder = (List<Bookmark>)allBookmarks.Find<BookmarkFolder>(bookmarkFolder => bookmarkFolder.Title == "nsfw")[0];
             imgurBookmarks = nsfwFolder.Where(bookmark => bookmark.Link.Contains("imgur.com")).ToList();
-            
-            foreach (var imgurBookmark in imgurBookmarks)
-            {
-                imageList.Items.Add(imgurBookmark.Title);
-            }
-            
+
+            var sw = new Stopwatch();
+            sw.Start();
             ShowImage(0);
+            sw.Stop();
+            Debug.WriteLine(sw.Elapsed);
+
+            foreach (var imgurBookmark in imgurBookmarks)
+                imageList.Items.Add(imgurBookmark.Title);
         }
 
         private void ShowImage(int index)
@@ -52,6 +54,7 @@ namespace PicRate
         private void MainWindow_FormClosed(object sender, FormClosedEventArgs e)
         {
             imgur.ImageCache.Save();
+            imgur.ImageUrlCache.Save();
         }
     }
 }
