@@ -21,7 +21,7 @@ namespace PicRate
 
             try
             {
-                cache = Deserialize(Decompress(File.ReadAllBytes(FilePath)));
+                cache = CacheHelper.Deserialize<Dictionary<string, BookmarkFolder>>(CacheHelper.Decompress(File.ReadAllBytes(FilePath)));
             }
             catch
             {
@@ -41,60 +41,7 @@ namespace PicRate
 
         public void Save()
         {
-            File.WriteAllBytes(FilePath, Compress(Serialize(cache)));
-        }
-
-        private static byte[] Compress(byte[] toCompress)
-        {
-            using (var ms = new MemoryStream())
-            {
-                using (var gzip = new GZipStream(ms, CompressionMode.Compress, true))
-                    gzip.Write(toCompress, 0, toCompress.Length);
-
-                return ms.ToArray();
-            }
-        }
-
-        private static byte[] Decompress(byte[] toDecompress)
-        {
-            using (var gzip = new GZipStream(new MemoryStream(toDecompress), CompressionMode.Decompress))
-            {
-                const int size = 4096;
-                var buffer = new byte[size];
-                using (var ms = new MemoryStream())
-                {
-                    int count = 0;
-                    do
-                    {
-                        count = gzip.Read(buffer, 0, size);
-                        if (count > 0)
-                            ms.Write(buffer, 0, count);
-                    }
-                    while (count > 0);
-                    return ms.ToArray();
-                }
-            }
-        }
-
-        private static byte[] Serialize(Dictionary<string, BookmarkFolder> toSerialize)
-        {
-            var bf = new BinaryFormatter();
-            using (var ms = new MemoryStream())
-            {
-                bf.Serialize(ms, toSerialize);
-                return ms.ToArray();
-            }
-        }
-
-        private static Dictionary<string, BookmarkFolder> Deserialize(byte[] toDeserialize)
-        {
-            var bf = new BinaryFormatter();
-            using (var ms = new MemoryStream())
-            {
-                ms.Write(toDeserialize, 0, toDeserialize.Length);
-                ms.Seek(0, SeekOrigin.Begin);
-                return (Dictionary<string, BookmarkFolder>)bf.Deserialize(ms);
-            }
+            File.WriteAllBytes(FilePath, CacheHelper.Compress(CacheHelper.Serialize(cache)));
         }
     }
 }

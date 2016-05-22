@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 
 namespace PicRate
 {
@@ -18,6 +19,7 @@ namespace PicRate
         private const string apiEndpoint = @"https://api.imgur.com/3/";
         private const string clientId = "75a7b93a575fde4";
 
+        public ImageCache ImageCache = new ImageCache(@"C:\Users\foxneSs\Desktop\Images.cache");
         private HttpClient client = new HttpClient();
         private Regex directImageRegex = new Regex(@"^https?://i\.imgur\.com/\w+\.\w+(\?\d+)?$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
         private Regex embeddedAlbumImageRegex = new Regex(@"^https?://imgur\.com/a/(?<album>\w+)/embed#(?<id>\d+)", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
@@ -27,24 +29,22 @@ namespace PicRate
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Client-ID", clientId);
         }
 
-        /*public List<KeyValuePair<string, Image>> GetImages(List<string> urls)
-        {
-            var list = new List<KeyValuePair<string, Image>>();
-            foreach (var url in urls)
-            {
-                var imageUrl = GetImageUrl(url);
-                if (imageUrl != null)
-                    list.Add(new KeyValuePair<string, Image>(url, GetImage(imageUrl)));
-            }
-            return list;
-        }*/
-
         public Image GetImage(string url)
         {
+            var sw = new Stopwatch();
+            sw.Start();
+            
             var imageUrl = GetImageUrl(url);
             if (imageUrl == null)
                 return null;
-            return Image.FromStream(client.GetStreamAsync(imageUrl).Result);
+
+            sw.Stop();
+            Debug.WriteLine(sw.Elapsed);
+
+            if (!ImageCache.ContainsKey(imageUrl))
+                ImageCache.Add(imageUrl, Image.FromStream(client.GetStreamAsync(imageUrl).Result));
+
+            return ImageCache[imageUrl];
         } 
 
         private string GetImageUrl(string url)
@@ -65,7 +65,7 @@ namespace PicRate
             return parsedJson.data.images[id].link;
         }
 
-        public void Test(List<string> urls)
+        /*public void Test(List<string> urls)
         {
             var directImageUrls = urls.Where(url => directImageRegex.IsMatch(url)).ToList();
             var rest = urls.Where(url => !directImageRegex.IsMatch(url)).ToList();
@@ -76,6 +76,6 @@ namespace PicRate
             var asd = rest.Aggregate((a, b) => $"{a}\n{b}");
             double directImagePercentage = 100d * directImageUrls.Count / urls.Count;
             double embeddedAlbumImagePercentage = 100d * embeddedAlbumImageUrls.Count / urls.Count;
-        }
+        }*/
     }
 }

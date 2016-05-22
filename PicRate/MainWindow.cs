@@ -3,8 +3,8 @@ using System.IO;
 using System.Windows.Forms;
 using System.Linq;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Diagnostics;
+using System.Drawing;
 using System.Text.RegularExpressions;
 
 namespace PicRate
@@ -27,23 +27,16 @@ namespace PicRate
 
         private void MainWindow_Shown(object sender, EventArgs e)
         {
-            var sw = new Stopwatch();
-            
-
             var allBookmarks = JSONBookmarkParser.Parse(File.ReadAllText(@"C:\Users\foxneSs\Desktop\large"));
             var nsfwFolder = (List<Bookmark>)allBookmarks.Find<BookmarkFolder>(bookmarkFolder => bookmarkFolder.Title == "nsfw")[0];
             imgurBookmarks = nsfwFolder.Where(bookmark => bookmark.Link.Contains("imgur.com")).ToList();
-
-            sw.Start();
+            
             foreach (var imgurBookmark in imgurBookmarks)
             {
                 imageList.Items.Add(imgurBookmark.Title);
             }
-            sw.Stop();
-            ShowImage(0);
-
             
-            Debug.WriteLine(sw.Elapsed);
+            ShowImage(0);
         }
 
         private void ShowImage(int index)
@@ -54,6 +47,11 @@ namespace PicRate
 
             images.Add(Tuple.Create(imgurBookmarks[index], new RateableImage(image)));
             imageBox.Image = images[index].Item2.Image;
+        }
+
+        private void MainWindow_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            imgur.ImageCache.Save();
         }
     }
 }
