@@ -13,6 +13,7 @@ namespace PicRate
     {
         private List<Tuple<Bookmark, RateableImage>> images = new List<Tuple<Bookmark, RateableImage>>();
         private Imgur imgur = new Imgur();
+        private BookmarkFolderCache bookmarkCache = new BookmarkFolderCache(@"C:\Users\foxneSs\Desktop\Bookmark.cache");
         private List<Bookmark> imgurBookmarks;
 
         public MainWindow()
@@ -27,18 +28,27 @@ namespace PicRate
 
         private void MainWindow_Shown(object sender, EventArgs e)
         {
-            var allBookmarks = JSONBookmarkParser.Parse(File.ReadAllText(@"C:\Users\foxneSs\Desktop\large"));
+            var sw = new Stopwatch();
+            sw.Start();
+
+            BookmarkFolder allBookmarks;
+            var bookmarksRaw = File.ReadAllText(@"C:\Users\foxneSs\Desktop\large");
+            if (bookmarkCache.ContainsKey(bookmarksRaw))
+                allBookmarks = bookmarkCache[bookmarksRaw];
+            else
+            {
+                bookmarkCache.Add(bookmarksRaw, JSONBookmarkParser.Parse(bookmarksRaw));
+                allBookmarks = bookmarkCache[bookmarksRaw];
+            }
+
             var nsfwFolder = (List<Bookmark>)allBookmarks.Find<BookmarkFolder>(bookmarkFolder => bookmarkFolder.Title == "nsfw")[0];
             imgurBookmarks = nsfwFolder.Where(bookmark => bookmark.Link.Contains("imgur.com")).ToList();
 
-            var sw = new Stopwatch();
-            sw.Start();
             ShowImage(0);
+            imageList.Items.AddRange(imgurBookmarks.Select(bookmark => bookmark.Title).ToArray());
+
             sw.Stop();
             Debug.WriteLine(sw.Elapsed);
-
-            foreach (var imgurBookmark in imgurBookmarks)
-                imageList.Items.Add(imgurBookmark.Title);
         }
 
         private void ShowImage(int index)
@@ -55,6 +65,7 @@ namespace PicRate
         {
             imgur.ImageCache.Save();
             imgur.ImageUrlCache.Save();
+            bookmarkCache.Save();
         }
     }
 }
