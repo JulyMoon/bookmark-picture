@@ -1,9 +1,23 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace PicRate
 {
+    static class ListHelper
+    {
+        public static List<T> RepeatedDefault<T>(int count) => Repeated(default(T), count);
+
+        public static List<T> Repeated<T>(T value, int count)
+        {
+            var list = new List<T>(count);
+            list.AddRange(Enumerable.Repeat(value, count));
+            return list;
+        }
+    }
+
     static class CacheHelper
     {
         public static byte[] Compress(byte[] toCompress)

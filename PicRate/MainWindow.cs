@@ -11,7 +11,7 @@ namespace PicRate
 {
     public partial class MainWindow : Form
     {
-        private List<Tuple<Bookmark, RateableImage>> images = new List<Tuple<Bookmark, RateableImage>>();
+        private List<Tuple<Bookmark, RateableImage>> images;
         private Imgur imgur = new Imgur();
         private BookmarkFolderCache bookmarkCache = new BookmarkFolderCache(@"C:\Users\foxneSs\Desktop\Bookmark.cache");
         private List<Bookmark> imgurBookmarks;
@@ -41,8 +41,9 @@ namespace PicRate
                 allBookmarks = bookmarkCache[bookmarksRaw];
             }
 
-            var nsfwFolder = (List<Bookmark>)allBookmarks.Find<BookmarkFolder>(bookmarkFolder => bookmarkFolder.Title == "nsfw")[0];
-            imgurBookmarks = nsfwFolder.Where(bookmark => bookmark.Link.Contains("imgur.com")).ToList();
+            var imageFolder = (List<Bookmark>)allBookmarks.Find<BookmarkFolder>(bookmarkFolder => bookmarkFolder.Title == "nsfw")[0];
+            imgurBookmarks = imageFolder.Where(bookmark => bookmark.Link.Contains("imgur.com")).ToList();
+            images = ListHelper.RepeatedDefault<Tuple<Bookmark, RateableImage>>(imgurBookmarks.Count);
 
             ShowImage(0);
             imageList.Items.AddRange(imgurBookmarks.Select(bookmark => bookmark.Title).ToArray());
@@ -55,10 +56,12 @@ namespace PicRate
         {
             var image = imgur.GetImage(imgurBookmarks[index].Link);
             if (image == null)
-                return;
+                throw new Exception("can't parse that url");
 
-            images.Add(Tuple.Create(imgurBookmarks[index], new RateableImage(image)));
-            imageBox.Image = images[index].Item2.Image;
+            if (images[index] == null)
+                images[index] = Tuple.Create(imgurBookmarks[index], new RateableImage(image));
+
+            imageBox.Image = image;
         }
 
         private void MainWindow_FormClosed(object sender, FormClosedEventArgs e)
@@ -66,6 +69,11 @@ namespace PicRate
             imgur.ImageCache.Save();
             imgur.ImageUrlCache.Save();
             bookmarkCache.Save();
+        }
+
+        private void imageList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ShowImage(imageList.SelectedIndex);
         }
     }
 }

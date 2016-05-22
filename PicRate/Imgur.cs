@@ -19,7 +19,7 @@ namespace PicRate
         private const string apiEndpoint = @"https://api.imgur.com/3/";
         private const string clientId = "75a7b93a575fde4";
 
-        public ImageCache ImageCache = new ImageCache(@"C:\Users\foxneSs\Desktop\Images.cache");
+        public ImageCache ImageCache = new ImageCache(@"C:\Users\foxneSs\Desktop\Image.cache");
         public ImageUrlCache ImageUrlCache = new ImageUrlCache(@"C:\Users\foxneSs\Desktop\Url.cache");
         private HttpClient client = new HttpClient();
         private Regex directImageRegex = new Regex(@"^https?://i\.imgur\.com/\w+\.\w+(\?\d+)?$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
@@ -41,7 +41,7 @@ namespace PicRate
                 ImageCache.Add(imageUrl, Image.FromStream(client.GetStreamAsync(imageUrl).Result));
 
             return ImageCache[imageUrl];
-        } 
+        }
 
         private string GetImageUrl(string url)
         {

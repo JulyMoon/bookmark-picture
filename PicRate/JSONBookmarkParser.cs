@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
-using System.Diagnostics;
 using System.Linq;
-using Newtonsoft.Json;
 
 namespace PicRate
 {

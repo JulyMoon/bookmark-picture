@@ -52,7 +52,7 @@
   <ItemGroup>
     <Compile Include="BookmarkFolder.cs" />
     <Compile Include="CacheBase.cs" />
-    <Compile Include="CacheHelper.cs" />
+    <Compile Include="Helper.cs" />
     <Compile Include="HTMLBookmarkParser.cs" />
     <Compile Include="BookmarkFolderCache.cs" />
     <Compile Include="ImageCache.cs" />

@@ -76,6 +76,7 @@
             this.imageList.Name = "imageList";
             this.imageList.Size = new System.Drawing.Size(170, 303);
             this.imageList.TabIndex = 4;
+            this.imageList.SelectedIndexChanged += new System.EventHandler(this.imageList_SelectedIndexChanged);
             // 
             // MainWindow
             // 
