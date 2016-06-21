@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 
 namespace PicRate
 {
@@ -20,6 +22,9 @@ namespace PicRate
 
     static class CacheHelper
     {
+        public static string ToBase64(string s) => Convert.ToBase64String(Encoding.UTF8.GetBytes(s));
+        public static string FromBase64(string s) => Encoding.UTF8.GetString(Convert.FromBase64String(s));
+
         public static byte[] Compress(byte[] toCompress)
         {
             using (var ms = new MemoryStream())

@@ -46,6 +46,7 @@
             this.imageBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.imageBox.TabIndex = 0;
             this.imageBox.TabStop = false;
+            this.imageBox.DoubleClick += new System.EventHandler(this.imageBox_DoubleClick);
             // 
             // backButton
             // 
@@ -56,6 +57,7 @@
             this.backButton.TabIndex = 2;
             this.backButton.Text = "<---";
             this.backButton.UseVisualStyleBackColor = true;
+            this.backButton.Click += new System.EventHandler(this.backButton_Click);
             // 
             // forwardButton
             // 
@@ -66,6 +68,7 @@
             this.forwardButton.TabIndex = 3;
             this.forwardButton.Text = "--->";
             this.forwardButton.UseVisualStyleBackColor = true;
+            this.forwardButton.Click += new System.EventHandler(this.forwardButton_Click);
             // 
             // imageList
             // 

@@ -4,13 +4,14 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace PicRate
 {
@@ -19,7 +20,7 @@ namespace PicRate
         private const string apiEndpoint = @"https://api.imgur.com/3/";
         private const string clientId = "75a7b93a575fde4";
 
-        public ImageCache ImageCache = new ImageCache(@"C:\Users\foxneSs\Desktop\Image.cache");
+        public ImageCache ImageCache = new ImageCache(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Assembly.GetExecutingAssembly().GetName().Name));
         public ImageUrlCache ImageUrlCache = new ImageUrlCache(@"C:\Users\foxneSs\Desktop\Url.cache");
         private HttpClient client = new HttpClient();
         private Regex directImageRegex = new Regex(@"^https?://i\.imgur\.com/\w+\.\w+(\?\d+)?$", RegexOptions.Compiled | RegexOptions.ExplicitCapture);
@@ -34,10 +35,7 @@ namespace PicRate
         {
             var imageUrl = GetImageUrl(url);
 
-            if (imageUrl == null)
-                return null;
-
-            if (!ImageCache.ContainsKey(imageUrl))
+            if (!ImageCache.ContainsUrl(imageUrl))
                 ImageCache.Add(imageUrl, StreamToImage(client.GetStreamAsync(imageUrl).Result));
 
             return ImageCache[imageUrl];
@@ -49,7 +47,6 @@ namespace PicRate
             // http://stackoverflow.com/a/8900891/1412924
             var ms = new MemoryStream();
             stream.CopyTo(ms);
-            Debug.WriteLine(ms.Position);
             //ms.Position = 0;
             return Image.FromStream(ms);
         }
@@ -65,7 +62,9 @@ namespace PicRate
             else
             {
                 var match = embeddedAlbumImageRegex.Match(url);
-                result = match.Success ? GetImageUrl(match.Groups["album"].Value, Int32.Parse(match.Groups["id"].Value)) : null;
+                if (!match.Success)
+                    throw new ArgumentException("Unknown url format");
+                result = GetImageUrl(match.Groups["album"].Value, Int32.Parse(match.Groups["id"].Value));
             }
 
             ImageUrlCache.Add(url, result);

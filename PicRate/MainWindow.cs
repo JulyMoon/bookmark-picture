@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
+using System.Reflection;
 
 namespace PicRate
 {
@@ -28,45 +30,43 @@ namespace PicRate
 
         private void MainWindow_Shown(object sender, EventArgs e)
         {
-            var sw = new Stopwatch();
-            sw.Start();
-
-            BookmarkFolder allBookmarks;
             var bookmarksRaw = File.ReadAllText(@"C:\Users\foxneSs\Desktop\large");
-            if (bookmarkCache.ContainsKey(bookmarksRaw))
-                allBookmarks = bookmarkCache[bookmarksRaw];
-            else
-            {
+            if (!bookmarkCache.ContainsKey(bookmarksRaw))
                 bookmarkCache.Add(bookmarksRaw, JSONBookmarkParser.Parse(bookmarksRaw));
-                allBookmarks = bookmarkCache[bookmarksRaw];
-            }
+
+            var allBookmarks = bookmarkCache[bookmarksRaw];
 
             var imageFolder = (List<Bookmark>)allBookmarks.Find<BookmarkFolder>(bookmarkFolder => bookmarkFolder.Title == "nsfw")[0];
             imgurBookmarks = imageFolder.Where(bookmark => bookmark.Link.Contains("imgur.com")).ToList();
             images = ListHelper.RepeatedDefault<Tuple<Bookmark, RateableImage>>(imgurBookmarks.Count);
-
-            ShowImage(0);
             imageList.Items.AddRange(imgurBookmarks.Select(bookmark => bookmark.Title).ToArray());
-
-            sw.Stop();
-            Debug.WriteLine(sw.Elapsed);
+            
+            //imageList.SelectedIndex = 0;
         }
 
         private void ShowImage(int index)
         {
-            var image = imgur.GetImage(imgurBookmarks[index].Link);
-            if (image == null)
-                throw new Exception("can't parse that url");
-
             if (images[index] == null)
+            {
+                Image image;
+                try
+                {
+                    image = imgur.GetImage(imgurBookmarks[index].Link);
+                }
+                catch
+                {
+                    image = null;
+                }
                 images[index] = Tuple.Create(imgurBookmarks[index], new RateableImage(image));
+            }
 
-            imageBox.Image = image;
+            imageBox.Image = images[index].Item2.Image;
         }
 
         private void MainWindow_FormClosed(object sender, FormClosedEventArgs e)
         {
-            imgur.ImageCache.Save();
+            Hide();
+            //imgur.ImageCache.Save();
             imgur.ImageUrlCache.Save();
             bookmarkCache.Save();
         }
@@ -74,6 +74,22 @@ namespace PicRate
         private void imageList_SelectedIndexChanged(object sender, EventArgs e)
         {
             ShowImage(imageList.SelectedIndex);
+        }
+
+        private void imageBox_DoubleClick(object sender, EventArgs e)
+        {
+            Process.Start(images[imageList.SelectedIndex].Item1.Link);
+            BringToFront();
+        }
+
+        private void backButton_Click(object sender, EventArgs e)
+        {
+            imageList.SelectedIndex--;
+        }
+
+        private void forwardButton_Click(object sender, EventArgs e)
+        {
+            imageList.SelectedIndex++;
         }
     }
 }
